@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" id="theme-styles">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+    <style>
+        body {
+            font-family: "Poppins", sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            height: 86vh;
+            margin-top: 45px;
+        }
+
+        .form-container {
+            display: flex;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-left {
+            flex: 1;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+
+        .form-right {
+            flex: 2;
+            padding: 20px;
+            background-color: #fff;
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        th, td {
+            text-align: center;
+        }   
+
+        .dataTables_paginate .paginate_button {
+            font-size: 12px;
+        }
+
+        .dataTables_length {
+            font-size: 12px;
+            padding: 4px;
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <div class="form-left">
+                <div class="row">
+                    <div class="col">
+                        <h4 id="judul" class="mt-2">Daily Report</h4>
+                    </div>
+                    <div class="col text-end">
+                        <button type="button" class="btn btn-danger d-none" id="cancelAdd">Cancel</button>
+                        <button type="button" class="btn btn-primary d-none" id="insert">Insert</button>
+                    </div>
+                </div>
+                
+                <div class="input mb-1 mt-3">
+                    <input type="date" class="form-control" id="inputDate">
+                </div>
+                <div class="input mb-1" style="display: none;">
+                    <input type="text" class="form-control" id="inputNama" placeholder="Input customer name">
+                </div>
+                <form action="" method="post" enctype="multipart/form-data" id="formInputFile" style="display: none;">
+                    <div class="input-group mb-2">
+                        <input type="file" class="form-control" id="inputFile" name="excel_file" multiple>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Submit</button>
+                </form>
+                <div class="input mb-1 mt-2">
+                    <button type="button" class="btn btn-success" id="search" style="width: 100%;">Search</button>
+                    
+                </div>
+
+            </div>
+            <div class="form-right">
+                <div class="row d-flex justify-content-between p-2">
+                    <div class="col">
+                        <!-- <h3>April 2024</h3> -->
+                        <h3 id="dateText"></h3>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-danger" id="clear">Clear</button>
+                        <button type="button" class="btn btn-primary" id="download">Download</button>
+                    </div>
+                </div>                
+
+                <table id="myTable" class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">No</th>
+                            <th scope="col">Nama</th>
+                            <th scope="col">Suhu</th>
+                            <th scope="col">Safe Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- {% for row in data %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ row.nama }}</td>
+                            <td>{{ row.average_temp }}</td>
+                            <td>{{ row.safe_percentage }}</td>
+                        </tr>
+                        {% endfor %} -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready( function () {
+            $('#myTable').DataTable({
+                "columnDefs": [
+                    { "width": "8%", "targets": 0 },
+                    { "width": "42%", "targets": 1 },
+                    { "width": "25%", "targets": 2 },
+                ],
+                "paging": false,
+                "searching": false,
+                "info": false
+            });
+
+            // Submit
+            $('form').submit(function(e) {
+                e.preventDefault();
+                selectedCompany = $('#inputNama').val();
+                date = $('#inputDate').val();
+                files = document.getElementById('inputFile').files;
+                if (!selectedCompany) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Incomplete Details',
+                        text: 'Please complete the customer name'
+                    })
+                    return
+                }
+                if (files.length == 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No file uploaded',
+                        text: 'Please upload the file'
+                    })
+                    return
+                }
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Loading...',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    willOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                var formData = new FormData();
+                formData.append('selectedCompany', selectedCompany);
+                formData.append('date', date);
+                var files = $('#inputFile')[0].files;
+                for (var i = 0; i < files.length; i++) {
+                    formData.append('excel_files', files[i]);
+                }
+
+                $.ajax({
+                    url: '/upload',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function(response) {
+                        if (response.message == 'success') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success'
+                            }).then(() => {
+                                $('#inputNama').val('');
+                                $('#inputFile').val('');
+                                $("#judul").text("Daily Report");
+                                $("#inputNama").parent().hide();
+                                $("#formInputFile").hide(); 
+                                $("#cancelAdd").addClass("d-none");
+                                $("#insert").removeClass("d-none");
+                                $("#search").removeClass("d-none");
+                                $("#inputDate").attr("readonly", false);
+                    
+                                getData(date);
+                            });
+
+                        } else if (response.message == 'existed') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Data already existed!'
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Failed'
+                            });
+                        }
+                    },
+                    error: function(err) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed',
+                            text: err.responseText
+                        });  
+                    }
+                });
+            });
+
+            // Clear
+            $('#clear').on('click', function() {
+                date = $('#inputDate').val()
+                $.ajax({
+                    url: '/clear-data',
+                    type: 'GET',
+                    data: {
+                        date: date,
+                    },
+                    success: function(response) {
+                        if (response.message === 'success') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success'
+                            }).then(() => {
+                                getData(date);
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'No data'
+                            });
+                        }
+                    },
+                    error: function(err) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed',
+                            text: err.responseText
+                        });
+                    }
+                });
+            });
+
+            // Search
+            $('#search').on('click', function() {
+                date = $('#inputDate').val()
+
+                if (date != '') {
+                    $("#insert").removeClass("d-none");
+                    getData(date)
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Incomplete Details',
+                        text: 'Please complete the date fields'
+                    });
+                }
+            });
+
+            // Insert
+            $('#insert').on('click', function() {
+                date = $('#inputDate').val()
+
+                if (date != '') {
+                    $("#judul").text("Insert New Data");
+                    $("#inputNama").parent().show();
+                    $("#formInputFile").show(); 
+                    $("#cancelAdd").removeClass("d-none");
+                    $("#insert").addClass("d-none");
+                    $("#search").addClass("d-none");
+                    $("#inputDate").attr("readonly", true);
+
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Incomplete Details',
+                        text: 'Please complete the date fields'
+                    });
+                }
+            });
+
+            $('#cancelAdd').on('click', function() {
+                $("#judul").text("Daily Report");
+                $("#inputNama").parent().hide();
+                $("#formInputFile").hide(); 
+                $("#cancelAdd").addClass("d-none");
+                $("#insert").removeClass("d-none");
+                $("#search").removeClass("d-none");
+                $("#inputDate").attr("readonly", false);
+    
+            });
+
+
+            $('#download').on('click', function(e){
+                e.preventDefault();
+
+                date = $('#inputDate').val()
+
+                if (date == '') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Incomplete Details',
+                        text: 'Please complete the date fields'
+                    });
+                    return
+                }
+
+
+                $.ajax({
+                    url: '/check',
+                    type: 'POST',
+                    data: {
+                        date: date,
+                    },
+                    success: function(response) {
+                        if (response.message == 'success') {
+                            $.ajax({
+                                url: '/make-pdf',
+                                type: 'POST',
+                                data: {
+                                    date: date,
+                                },
+                                success: function(response) {
+                                    var blob = new Blob([response], { type: 'application/pdf' });
+                                    var url = window.URL.createObjectURL(blob);
+                                    var a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = 'Report.pdf';
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    window.URL.revokeObjectURL(url);
+                                },
+                                error: function(err) {
+                                    console.error('Failed to download PDF:', err);
+                                }
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'No Data',
+                                // text: 'Please complete the date fields'
+                            });
+                            return
+                        }
+                    }
+                });
+
+                
+
+            });      
+
+            function getData(date) {
+                $.ajax({
+                    url: '/get-data',
+                    type: 'GET',
+                    data: {
+                        date: date,
+                    },
+                    success: function(response) {
+                        if (response.message === 'success') {
+                            $('#myTable tbody').empty();
+
+                            $.each(response.data, function(index, row) {
+                                var newRow = $('<tr>').append(
+                                    $('<td>').text(index + 1),
+                                    $('<td>').text(row.nama),
+                                    $('<td>').text(row.average_temp + '°C'),
+                                    $('<td>').text(row.safe_percentage + '%')
+                                );
+                                $('#myTable tbody').append(newRow);
+                            });
+                        } else {
+                            $('#myTable tbody').html('<tr><td colspan="4">No data uploaded</td></tr>');
+                        }
+                    },
+                    error: function(err) {
+                        console.error('Gagal mendapatkan data:', err);
+                    }
+                });
+            }
+
+            date = $('#inputDate').val()
+            getData(date);
+        });
+    </script>
+</body>
+</html>
