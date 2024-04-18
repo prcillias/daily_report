@@ -20,8 +20,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 class CustTemp(db.Model):
+    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     date = db.Column(db.String(10))
-    nama = db.Column(db.String(255), primary_key=True)
+    nama = db.Column(db.String(255))
     average_temp = db.Column(db.Float)
     safe_percentage = db.Column(db.Float)
     
@@ -71,7 +72,7 @@ def upload():
     uploaded_files = request.files.getlist('excel_files')
     data = []
 
-    existing_data = CustTemp.query.filter_by(nama=nama).first()
+    existing_data = CustTemp.query.filter_by(nama=nama, date=date).first()
     if existing_data:
         return jsonify({"message": "existed"})
     
