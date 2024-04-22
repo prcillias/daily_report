@@ -107,7 +107,6 @@
             <div class="form-right">
                 <div class="row d-flex justify-content-between p-2">
                     <div class="col">
-                        <!-- <h3>April 2024</h3> -->
                         <h3 id="dateText"></h3>
                     </div>
                     <div class="col-auto">
@@ -123,6 +122,7 @@
                             <th scope="col">Nama</th>
                             <th scope="col">Suhu</th>
                             <th scope="col">Safe Status</th>
+                            <th scope="col">Unbalance Count</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -144,8 +144,9 @@
             $('#myTable').DataTable({
                 "columnDefs": [
                     { "width": "8%", "targets": 0 },
-                    { "width": "42%", "targets": 1 },
-                    { "width": "25%", "targets": 2 },
+                    { "width": "35%", "targets": 1 },
+                    { "width": "15%", "targets": 2 },
+                    { "width": "20%", "targets": 3 },
                 ],
                 "paging": false,
                 "searching": false,
@@ -396,12 +397,13 @@
                                     $('<td>').text(index + 1),
                                     $('<td>').text(row.nama),
                                     $('<td>').text(row.average_temp + '°C'),
-                                    $('<td>').text(row.safe_percentage + '%')
+                                    $('<td>').text(row.safe_percentage + '%'),
+                                    $('<td>').text(row.unbalance_count)
                                 );
                                 $('#myTable tbody').append(newRow);
                             });
                         } else {
-                            $('#myTable tbody').html('<tr><td colspan="4">No data uploaded</td></tr>');
+                            $('#myTable tbody').html('<tr><td colspan="5">No data uploaded</td></tr>');
                         }
                     },
                     error: function(err) {

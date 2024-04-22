@@ -25,6 +25,7 @@ class CustTemp(db.Model):
     nama = db.Column(db.String(255))
     average_temp = db.Column(db.Float)
     safe_percentage = db.Column(db.Float)
+    unbalance_count = db.Column(db.Integer)
     
     def __repr__(self):
         return f'<{self.nama}>'
@@ -45,7 +46,8 @@ def get_data():
             formatted_item = {
                 'nama': item.nama,
                 'average_temp': item.average_temp,
-                'safe_percentage': item.safe_percentage
+                'safe_percentage': item.safe_percentage,
+                'unbalance_count': item.unbalance_count
             }
             formatted_data.append(formatted_item)
         return jsonify({"message": "success", "data": formatted_data})
@@ -87,7 +89,9 @@ def upload():
         average_oil_temp = round(all_data['OilTemp'].mean(), 2)
         value_counts = all_data['Status'].value_counts()
         safe_percentage = round((value_counts.get("Safe", 0) / len(all_data)) * 100, 2)
-        new = CustTemp(date=date, nama=nama, average_temp=average_oil_temp, safe_percentage=safe_percentage)
+        diff = abs(df['Van'] - df['Vbn']) + abs(df['Van'] - df['Vcn']) + abs(df['Vbn'] - df['Vcn'])
+        unbalance_count = int((diff > 15).sum())
+        new = CustTemp(date=date, nama=nama, average_temp=average_oil_temp, safe_percentage=safe_percentage, unbalance_count=unbalance_count)
         db.session.add(new)
         db.session.commit()
         return jsonify({"message": "success", "date": date})
@@ -118,9 +122,9 @@ def make_pdf():
 
     table_data = [['No', 'Nama', 'Suhu', 'Safe Status']]
     for i, row in enumerate(data):
-        table_data.append([i+1, row.nama, str(row.average_temp) + '°C', str(row.safe_percentage) + '%'])
+        table_data.append([i+1, row.nama, str(row.average_temp) + '°C', str(row.safe_percentage) + '%', row.unbalance_count])
 
-    col_widths = [35, 280, 80, 80]
+    col_widths = [35, 195, 65, 80, 100]
     t = Table(table_data, colWidths=col_widths)
     
     style = [('BACKGROUND', (0, 0), (-1, 0), '#4472C4'),
@@ -129,7 +133,7 @@ def make_pdf():
              ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
              ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
              ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-             ('FONT', (0, 0), (-1, -1), 'Helvetica', 13)]
+             ('FONT', (0, 0), (-1, -1), 'Helvetica', 12)]
 
     t.setStyle(style)
 
