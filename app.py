@@ -40,18 +40,18 @@ class CustUnbalance(db.Model):
     vab = db.Column(db.Float)
     vbc = db.Column(db.Float)
     vca = db.Column(db.Float)
-    van_vbn = db.Column(db.Integer)
-    van_vcn = db.Column(db.Integer)
-    vbn_vcn = db.Column(db.Integer)
-    vab_vbc = db.Column(db.Integer)
-    vab_vca = db.Column(db.Integer)
-    vbc_vca = db.Column(db.Integer)
-    # van_vbn = db.Column(db.String(5))
-    # van_vcn = db.Column(db.String(5))
-    # vbn_vcn = db.Column(db.String(5))
-    # vab_vbc = db.Column(db.String(5))
-    # vab_ca = db.Column(db.String(5))
-    # vbc_vca = db.Column(db.String(5))
+    # van_vbn = db.Column(db.Integer)
+    # van_vcn = db.Column(db.Integer)
+    # vbn_vcn = db.Column(db.Integer)
+    # vab_vbc = db.Column(db.Integer)
+    # vab_vca = db.Column(db.Integer)
+    # vbc_vca = db.Column(db.Integer)
+    van_vbn = db.Column(db.String(10))
+    van_vcn = db.Column(db.String(10))
+    vbn_vcn = db.Column(db.String(10))
+    vab_vbc = db.Column(db.String(10))
+    vab_vca = db.Column(db.String(10))
+    vbc_vca = db.Column(db.String(10))
     unbalance_count = db.Column(db.Integer)
     
     def __repr__(self):
@@ -179,33 +179,70 @@ def upload_voltage():
             df = pd.read_excel(excel_file, usecols="H,I,Q,R,Z,AA")
             
             for _, row in df.iterrows():
+                # if abs(row['Van'] - row['Vbn']) > 15:
+                #     van_vbn = 1
+                # else:
+                #     van_vbn = 0
+                # if abs(row['Van'] - row['Vcn']) > 15:
+                #     van_vcn = 1
+                # else:
+                #     van_vcn = 0
+                # if abs(row['Vbn'] - row['Vcn']) > 15:
+                #     vbn_vcn = 1
+                # else:
+                #     vbn_vcn = 0
+                # if abs(row['Vab'] - row['Vbc']) > 15:
+                #     vab_vbc = 1
+                # else:
+                #     vab_vbc = 0
+                # if abs(row['Vab'] - row['Vca']) > 15:
+                #     vab_vca = 1
+                # else:
+                #     vab_vca = 0
+                # if abs(row['Vbc'] - row['Vca']) > 15:
+                #     vbc_vca = 1
+                # else:
+                #     vbc_vca = 0
+                
                 if abs(row['Van'] - row['Vbn']) > 15:
-                    van_vbn = 1
+                    van_vbn = 'Unbalance'
+                    van_vbn2 = 1
                 else:
-                    van_vbn = 0
+                    van_vbn = 'Balance'
+                    van_vbn2 = 0
                 if abs(row['Van'] - row['Vcn']) > 15:
-                    van_vcn = 1
+                    van_vcn = 'Unbalance'
+                    van_vcn2 = 1
                 else:
-                    van_vcn = 0
+                    van_vcn = 'Balance'
+                    van_vcn2 = 0
                 if abs(row['Vbn'] - row['Vcn']) > 15:
-                    vbn_vcn = 1
+                    vbn_vcn = 'Unbalance'
+                    vbn_vcn2 = 1
                 else:
-                    vbn_vcn = 0
+                    vbn_vcn = 'Balance'
+                    vbn_vcn2 = 0
                 if abs(row['Vab'] - row['Vbc']) > 15:
-                    vab_vbc = 1
+                    vab_vbc = 'Unbalance'
+                    vab_vbc2 = 1
                 else:
-                    vab_vbc = 0
+                    vab_vbc = 'Balance'
+                    vab_vbc2 = 0
                 if abs(row['Vab'] - row['Vca']) > 15:
-                    vab_vca = 1
+                    vab_vca = 'Unbalance'
+                    vab_vca2 = 1
                 else:
-                    vab_vca = 0
+                    vab_vca = 'Balance'
+                    vab_vca2 = 0
                 if abs(row['Vbc'] - row['Vca']) > 15:
-                    vbc_vca = 1
+                    vbc_vca = 'Unbalance'
+                    vbc_vca2 = 1
                 else:
-                    vbc_vca = 0
+                    vbc_vca = 'Balance'
+                    vbc_vca2 = 0
                     
                 # diff = abs(row['Van'] - row['Vbn']) + abs(row['Van'] - row['Vcn']) + abs(row['Vbn'] - row['Vcn'])
-                unbalance_count = van_vbn + van_vcn + vbn_vcn + vab_vbc + vab_vca + vbc_vca
+                unbalance_count = van_vbn2 + van_vcn2 + vbn_vcn2 + vab_vbc2 + vab_vca2 + vbc_vca2
                 
                 new = CustUnbalance(date=date, nama=nama, van=row['Van'], vbn=row['Vbn'], vcn=row['Vcn'], vab=row['Vab'], vbc=row['Vbc'], vca=row['Vca'],
                                     van_vbn=van_vbn, van_vcn=van_vcn, vbn_vcn=vbn_vcn, vab_vbc=vab_vbc, vab_vca=vab_vca, vbc_vca=vbc_vca,
@@ -284,30 +321,208 @@ def make_pdf_voltage():
 
     formatted_date = date_obj.strftime("%d %B %Y")
     data = CustUnbalance.query.filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).all()
-    total_van_vbn_count = db.session.query(func.sum(CustUnbalance.van_vbn)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
-    total_van_vcn_count = db.session.query(func.sum(CustUnbalance.van_vcn)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
-    total_vbn_vcn_count = db.session.query(func.sum(CustUnbalance.vbn_vcn)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
-    total_vab_vbc_count = db.session.query(func.sum(CustUnbalance.vab_vbc)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
-    total_vab_vca_count = db.session.query(func.sum(CustUnbalance.vab_vca)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
-    total_vbc_vca_count = db.session.query(func.sum(CustUnbalance.vbc_vca)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
+    
+    total_van_vbn_count = db.session.query(func.count(CustUnbalance.id)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust, CustUnbalance.van_vbn == 'Unbalance')).scalar()
+    total_van_vcn_count = db.session.query(func.count(CustUnbalance.id)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust, CustUnbalance.van_vcn == 'Unbalance')).scalar()
+    total_vbn_vcn_count = db.session.query(func.count(CustUnbalance.id)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust, CustUnbalance.vbn_vcn == 'Unbalance')).scalar()
+    total_vab_vbc_count = db.session.query(func.count(CustUnbalance.id)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust, CustUnbalance.vab_vbc == 'Unbalance')).scalar()
+    total_vab_vca_count = db.session.query(func.count(CustUnbalance.id)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust, CustUnbalance.vab_vca == 'Unbalance')).scalar()
+    total_vbc_vca_count = db.session.query(func.count(CustUnbalance.id)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust, CustUnbalance.vbc_vca == 'Unbalance')).scalar()
+
+    # total_van_vbn_count = db.session.query(func.sum(CustUnbalance.van_vbn)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
+    # total_van_vcn_count = db.session.query(func.sum(CustUnbalance.van_vcn)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
+    # total_vbn_vcn_count = db.session.query(func.sum(CustUnbalance.vbn_vcn)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
+    # total_vab_vbc_count = db.session.query(func.sum(CustUnbalance.vab_vbc)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
+    # total_vab_vca_count = db.session.query(func.sum(CustUnbalance.vab_vca)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
+    # total_vbc_vca_count = db.session.query(func.sum(CustUnbalance.vbc_vca)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
     total_unbalance_count = db.session.query(func.sum(CustUnbalance.unbalance_count)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
     
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
     
-    chunk_size = 32
+    chunk_size = 45
     chunks = [data[i:i + chunk_size] for i in range(0, len(data), chunk_size)]
     
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(60, 785, f"{cust} Daily Report {formatted_date}")  
-    p.setFont("Helvetica", 10)
-    p.drawString(60, 765, f"Total Van & Vbn Unbalanced: {total_van_vbn_count}")
-    p.drawString(60, 750, f"Total Van & Vcn Unbalanced: {total_van_vcn_count}")
-    p.drawString(60, 735, f"Total Vbn & Vcn Unbalanced: {total_vbn_vcn_count}")
-    p.drawString(60, 720, f"Total Vab & Vbc Unbalanced: {total_vab_vbc_count}")
-    p.drawString(60, 705, f"Total Vab & Vca Unbalanced: {total_vab_vca_count}")
-    p.drawString(60, 690, f"Total Vbc & Vca Unbalanced: {total_vbc_vca_count}")
-    p.drawString(60, 675, f"Total Unbalanced: {total_unbalance_count}")
+    p.line(60, 800, 535, 800)
+
+    # Tulis "VOLTAGE DAILY REPORT" di tengah halaman
+    p.setFont("Helvetica-Bold", 25)
+    text_width = p.stringWidth("VOLTAGE DAILY REPORT", "Helvetica-Bold", 25)
+    x_center = (A4[0] - text_width) / 2
+    p.drawString(x_center, 765, "VOLTAGE DAILY REPORT")
+
+    # Gambar garis horizontal lagi
+    p.line(60, 750, 535, 750)
+    
+    p.setFillColor(colors.lightgrey)
+    p.rect(60, 705, 100, 30, fill=1)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 14)
+    p.drawString(65, 715, "NAME")
+    p.setFont("Helvetica", 14)
+    
+    p.setFillColor(colors.lightgrey)
+    p.rect(160, 705, 375, 30, fill=0)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 14)
+    p.drawString(165, 715, f"{cust}")
+    
+    p.setFillColor(colors.lightgrey)
+    p.rect(60, 665, 100, 30, fill=1)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 14)
+    p.drawString(65, 675, "DATE")
+    p.setFont("Helvetica", 14)
+    
+    p.setFillColor(colors.lightgrey)
+    p.rect(160, 665, 375, 30, fill=0)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 14)
+    p.drawString(165, 675, f"{formatted_date}")
+
+    # p.setFillColor(colors.lightgrey)
+    # p.rect(60, 705, 225, 30, fill=1, stroke=0)
+    # p.setFillColor(colors.black)
+    # p.setFont("Helvetica", 9)
+    # p.drawString(65, 725, "NAME")
+    # p.setFont("Helvetica", 14)
+    # p.drawString(65, 710, f"{cust}")
+    
+    # p.setFillColor(colors.lightgrey)
+    # p.rect(310, 705, 225, 30, fill=1, stroke=0)
+    # p.setFillColor(colors.black)
+    # p.setFont("Helvetica", 9)
+    # p.drawString(315, 725, "DATE")
+    # p.setFont("Helvetica", 14)
+    # p.drawString(315, 710, f"{formatted_date}")
+    
+    p.setFillColor(colors.lightgrey)
+    p.rect(60, 605, 475, 30, fill=1, stroke=0)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 15)
+    text_width = p.stringWidth("SUMMARY", "Helvetica", 15)
+    x_center = (A4[0] - text_width) / 2
+    p.drawString(x_center, 615, "SUMMARY")
+    
+    # Kotak pertama di bawah kotak "SUMMARY"
+    p.setFillColor(colors.lightgrey)
+    p.rect(60, 570, 400, 30, fill=1, stroke=0)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 12)
+    p.drawString(65, 580, "Total Van & Vbn Unbalance")
+
+    # Kotak pertama di bawah kotak "SUMMARY"
+    p.setFillColor(colors.lightgrey)
+    p.rect(465, 570, 70, 30, fill=1, stroke=0)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 12)
+    p.drawString(495, 580, f"{total_van_vbn_count}")
+
+    # Kotak span berwarna abu-abu dengan tulisan "SUMMARY" di tengah kotak
+    p.setFillColor(colors.lightgrey)
+    p.rect(60, 535, 400, 30, fill=1, stroke=0)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 12)
+    p.drawString(65, 545, "Total Van & Vcn Unbalance")
+
+    # Kotak pertama di bawah kotak "SUMMARY"
+    p.setFillColor(colors.lightgrey)
+    p.rect(465, 535, 70, 30, fill=1, stroke=0)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 12)
+    p.drawString(495, 545, f"{total_van_vcn_count}")
+
+    # Kotak span berwarna abu-abu dengan tulisan "SUMMARY" di tengah kotak
+    p.setFillColor(colors.lightgrey)
+    p.rect(60, 500, 400, 30, fill=1, stroke=0)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 12)
+    p.drawString(65, 510, "Total Vbn & Vcn Unbalance")
+
+    # Kotak pertama di bawah kotak "SUMMARY"
+    p.setFillColor(colors.lightgrey)
+    p.rect(465, 500, 70, 30, fill=1, stroke=0)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 12)
+    p.drawString(495, 510, f"{total_vbn_vcn_count}")
+
+    # Kotak span berwarna abu-abu dengan tulisan "SUMMARY" di tengah kotak
+    p.setFillColor(colors.lightgrey)
+    p.rect(60, 465, 400, 30, fill=1, stroke=0)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 12)
+    p.drawString(65, 475, "Total Vab & Vbc Unbalance")
+
+    # Kotak pertama di bawah kotak "SUMMARY"
+    p.setFillColor(colors.lightgrey)
+    p.rect(465, 465, 70, 30, fill=1, stroke=0)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 12)
+    p.drawString(495, 475, f"{total_vab_vbc_count}")
+
+    # Kotak span berwarna abu-abu dengan tulisan "SUMMARY" di tengah kotak
+    p.setFillColor(colors.lightgrey)
+    p.rect(60, 430, 400, 30, fill=1, stroke=0)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 12)
+    p.drawString(65, 440, "Total Vab & Vca Unbalance")
+
+    # Kotak pertama di bawah kotak "SUMMARY"
+    p.setFillColor(colors.lightgrey)
+    p.rect(465, 430, 70, 30, fill=1, stroke=0)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 12)
+    p.drawString(495, 440, f"{total_vab_vca_count}")
+
+    # Kotak span berwarna abu-abu dengan tulisan "SUMMARY" di tengah kotak
+    p.setFillColor(colors.lightgrey)
+    p.rect(60, 395, 400, 30, fill=1, stroke=0)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 12)
+    p.drawString(65, 405, "Total Vbc & Vca Unbalance")
+
+    # Kotak pertama di bawah kotak "SUMMARY"
+    p.setFillColor(colors.lightgrey)
+    p.rect(465, 395, 70, 30, fill=1, stroke=0)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 12)
+    p.drawString(495, 405, f"{total_vbc_vca_count}")
+
+    # Kotak span berwarna abu-abu dengan tulisan "SUMMARY" di tengah kotak
+    p.setFillColor(colors.lightgrey)
+    p.rect(60, 360, 400, 30, fill=1, stroke=0)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 12)
+    p.drawString(65, 370, "Total Unbalance")
+
+    # Kotak pertama di bawah kotak "SUMMARY"
+    p.setFillColor(colors.lightgrey)
+    p.rect(465, 360, 70, 30, fill=1, stroke=0)
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 12)
+    p.drawString(495, 370, f"{total_unbalance_count}")
+    
+    
+    
+    # p.showPage()
+    
+    # p.line(60, 800, 575, 800)
+    # p.setFont("Helvetica-Bold", 18)
+    # p.drawString(60, 795, f"{cust}")  
+    # p.setFont("Helvetica-Bold", 24)
+    # p.drawString(60, 785, " VOLTAGE DAILY REPORT")  
+    # p.setFont("Helvetica-Bold", 20)
+    # p.drawString(60, 775, f"{formatted_date}")  
+    # p.setFont("Helvetica", 12)
+    # p.drawString(60, 765, f"Total Van & Vbn Unbalance: {total_van_vbn_count}")
+    # p.drawString(60, 750, f"Total Van & Vcn Unbalance: {total_van_vcn_count}")
+    # p.drawString(60, 735, f"Total Vbn & Vcn Unbalance: {total_vbn_vcn_count}")
+    # p.drawString(60, 720, f"Total Vab & Vbc Unbalance: {total_vab_vbc_count}")
+    # p.drawString(60, 705, f"Total Vab & Vca Unbalance: {total_vab_vca_count}")
+    # p.drawString(60, 690, f"Total Vbc & Vca Unbalance: {total_vbc_vca_count}")
+    # p.drawString(60, 675, f"Total Unbalance: {total_unbalance_count}")
+    
+    p.showPage()
     
     for chunk in chunks:
         
@@ -327,7 +542,7 @@ def make_pdf_voltage():
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
                 ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-                ('FONT', (0, 0), (-1, -1), 'Helvetica', 8)]
+                ('FONT', (0, 0), (-1, -1), 'Helvetica', 7.5)]
 
         t.setStyle(style)
 
@@ -336,7 +551,7 @@ def make_pdf_voltage():
         
         y = (4.54545*len(chunk))+3.5455
         
-        table_y = 675 - 30 - table_height + (y)
+        table_y = 780 - table_height + (y)
         
         
         t.wrapOn(p, 0, 0)
