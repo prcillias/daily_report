@@ -113,11 +113,11 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 " style="display: flex; align-items: center;">
                     <li class="nav-item">
                         <!-- <i class="material-symbols-outlined active-icon" style="display: inline-block; vertical-align: middle;">list_alt_add</i> -->
-                        <a class="nav-link active" aria-current="page" href="#">Temperature</a>
+                        <a class="nav-link" aria-current="page" href="/">Temperature</a>
                     </li>
                     <li class="nav-item">
                         <!-- <i class="material-symbols-outlined" style="display: inline-block; vertical-align: middle;">upload_file</i> -->
-                        <a class="nav-link" href="/unbalance">Unbalance</a>
+                        <a class="nav-link active" href="#">Unbalance</a>
                     </li>
                 </ul>
             </div>
@@ -132,13 +132,19 @@
                     </div>
                     <div class="col text-end">
                         <button type="button" class="btn btn-danger d-none" id="cancelAdd">Cancel</button>
-                        <button type="button" class="btn btn-primary d-none" id="insert">Insert</button>
+                        <button type="button" class="btn btn-primary" id="insert">Insert</button>
                     </div>
                 </div>
                 
                 <div class="input mb-1 mt-3">
                     <input type="date" class="form-control" id="inputDate">
                 </div>
+                <select class="form-select" name="dropdown" id="dropdownCust">
+                    <option selected>Choose a customer</option>
+                    {% for row in data %}
+                    <option value="{{ row.nama }}">{{ row.nama }}</option>
+                    {% endfor %}
+                </select>
                 <div class="input mb-1" style="display: none;">
                     <input type="text" class="form-control" id="inputNama" placeholder="Input customer name">
                 </div>
@@ -168,21 +174,16 @@
                 <table id="myTable" class="table">
                     <thead>
                         <tr>
-                            <th scope="col">No</th>
-                            <th scope="col">Nama</th>
-                            <th scope="col">Suhu</th>
-                            <th scope="col">Safe Status</th>
+                            <th scope="col">Van</th>
+                            <th scope="col">Vbn</th>
+                            <th scope="col">Vcn</th>
+                            <th scope="col">Vab</th>
+                            <th scope="col">Vbc</th>
+                            <th scope="col">Vca</th>
+                            <th scope="col">Unbalance Count</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- {% for row in data %}
-                        <tr>
-                            <td>{{ loop.index }}</td>
-                            <td>{{ row.nama }}</td>
-                            <td>{{ row.average_temp }}</td>
-                            <td>{{ row.safe_percentage }}</td>
-                        </tr>
-                        {% endfor %} -->
                     </tbody>
                 </table>
             </div>
@@ -192,9 +193,7 @@
         $(document).ready( function () {
             $('#myTable').DataTable({
                 "columnDefs": [
-                    { "width": "10%", "targets": 0 },
-                    { "width": "50%", "targets": 1 },
-                    { "width": "20%", "targets": 2 }
+                    { "width": "22%", "targets": 6 }
                 ],
                 "paging": false,
                 "searching": false,
@@ -241,7 +240,7 @@
                 }
 
                 $.ajax({
-                    url: '/upload',
+                    url: '/upload_voltage',
                     type: 'POST',
                     data: formData,
                     contentType: false,
@@ -260,9 +259,9 @@
                                 $("#cancelAdd").addClass("d-none");
                                 $("#insert").removeClass("d-none");
                                 $("#search").removeClass("d-none");
-                                $("#inputDate").attr("readonly", false);
+                                $("#dropdownCust").removeClass("d-none");
                     
-                                getData(date);
+                                getData(date, selectedCompany);
                             });
 
                         } else if (response.message == 'existed') {
@@ -289,9 +288,10 @@
 
             // Clear
             $('#clear').on('click', function() {
-                date = $('#inputDate').val()
+                date = $('#inputDate').val();
+                cust = $('#dropdownCust').val();
                 $.ajax({
-                    url: '/clear-data',
+                    url: '/clear-data-voltage',
                     type: 'GET',
                     data: {
                         date: date,
@@ -302,7 +302,7 @@
                                 icon: 'success',
                                 title: 'Success'
                             }).then(() => {
-                                getData(date);
+                                getData(date, cust);
                             });
                         } else {
                             Swal.fire({
@@ -323,40 +323,43 @@
 
             // Search
             $('#search').on('click', function() {
-                date = $('#inputDate').val()
+                date = $('#inputDate').val();
+                cust = $('#dropdownCust').val();
 
-                if (date != '') {
-                    $("#insert").removeClass("d-none");
-                    getData(date)
-                } else {
+                if (!date) {
                     Swal.fire({
                         icon: 'warning',
                         title: 'Incomplete Details',
-                        text: 'Please complete the date fields'
+                        text: 'Please complete the customer fields'
                     });
+                    return
                 }
+
+                if (!cust) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Incomplete Details',
+                        text: 'Please complete the customer name fields'
+                    });
+                    return
+                }
+
+
+                $("#insert").removeClass("d-none");
+                getData(date, cust);
             });
 
             // Insert
             $('#insert').on('click', function() {
                 date = $('#inputDate').val()
 
-                if (date != '') {
-                    $("#judul").text("Insert New Data");
-                    $("#inputNama").parent().show();
-                    $("#formInputFile").show(); 
-                    $("#cancelAdd").removeClass("d-none");
-                    $("#insert").addClass("d-none");
-                    $("#search").addClass("d-none");
-                    $("#inputDate").attr("readonly", true);
-
-                } else {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Incomplete Details',
-                        text: 'Please complete the date fields'
-                    });
-                }
+                $("#judul").text("Insert New Data");
+                $("#inputNama").parent().show();
+                $("#formInputFile").show(); 
+                $("#cancelAdd").removeClass("d-none");
+                $("#dropdownCust").addClass("d-none");
+                $("#insert").addClass("d-none");
+                $("#search").addClass("d-none");
             });
 
             $('#cancelAdd').on('click', function() {
@@ -366,7 +369,7 @@
                 $("#cancelAdd").addClass("d-none");
                 $("#insert").removeClass("d-none");
                 $("#search").removeClass("d-none");
-                $("#inputDate").attr("readonly", false);
+                $("#dropdownCust").removeClass("d-none");
     
             });
 
@@ -375,12 +378,22 @@
                 e.preventDefault();
 
                 date = $('#inputDate').val()
+                cust = $('#dropdownCust').val()
 
-                if (date == '') {
+                if (!date) {
                     Swal.fire({
                         icon: 'warning',
                         title: 'Incomplete Details',
                         text: 'Please complete the date fields'
+                    });
+                    return
+                }
+
+                if (!cust) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Incomplete Details',
+                        text: 'Please select a customer!'
                     });
                     return
                 }
@@ -391,15 +404,17 @@
                     type: 'POST',
                     data: {
                         date: date,
-                        type: 't'
+                        cust: cust,
+                        type: 'v'
                     },
                     success: function(response) {
                         if (response.message == 'success') {
                             $.ajax({
-                                url: '/make-pdf',
+                                url: '/make-pdf-voltage',
                                 type: 'POST',
                                 data: {
                                     date: date,
+                                    cust: cust,
                                 },
                                 success: function(response) {
                                     var blob = new Blob([response], { type: 'application/pdf' });
@@ -430,12 +445,13 @@
 
             });      
 
-            function getData(date) {
+            function getData(date, cust) {
                 $.ajax({
-                    url: '/get-data',
+                    url: '/get-data-voltage',
                     type: 'GET',
                     data: {
                         date: date,
+                        cust: cust,
                     },
                     success: function(response) {
                         if (response.message === 'success') {
@@ -443,15 +459,18 @@
 
                             $.each(response.data, function(index, row) {
                                 var newRow = $('<tr>').append(
-                                    $('<td>').text(index + 1),
-                                    $('<td>').text(row.nama),
-                                    $('<td>').text(row.average_temp + '°C'),
-                                    $('<td>').text(row.safe_percentage + '%')
+                                    $('<td>').text(row.van),
+                                    $('<td>').text(row.vbn),
+                                    $('<td>').text(row.vcn),
+                                    $('<td>').text(row.vab),
+                                    $('<td>').text(row.vbc),
+                                    $('<td>').text(row.vca),
+                                    $('<td>').text(row.unbalance_count)
                                 );
                                 $('#myTable tbody').append(newRow);
                             });
                         } else {
-                            $('#myTable tbody').html('<tr><td colspan="4">No data uploaded</td></tr>');
+                            $('#myTable tbody').html('<tr><td colspan="7">No data uploaded</td></tr>');
                         }
                     },
                     error: function(err) {
@@ -460,8 +479,8 @@
                 });
             }
 
-            date = $('#inputDate').val()
-            getData(date);
+            // date = $('#inputDate').val()
+            // getData(date);
         });
     </script>
 </body>
