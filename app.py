@@ -40,6 +40,18 @@ class CustUnbalance(db.Model):
     vab = db.Column(db.Float)
     vbc = db.Column(db.Float)
     vca = db.Column(db.Float)
+    van_vbn = db.Column(db.Integer)
+    van_vcn = db.Column(db.Integer)
+    vbn_vcn = db.Column(db.Integer)
+    vab_vbc = db.Column(db.Integer)
+    vab_vca = db.Column(db.Integer)
+    vbc_vca = db.Column(db.Integer)
+    # van_vbn = db.Column(db.String(5))
+    # van_vcn = db.Column(db.String(5))
+    # vbn_vcn = db.Column(db.String(5))
+    # vab_vbc = db.Column(db.String(5))
+    # vab_ca = db.Column(db.String(5))
+    # vbc_vca = db.Column(db.String(5))
     unbalance_count = db.Column(db.Integer)
     
     def __repr__(self):
@@ -161,15 +173,43 @@ def upload_voltage():
     if existing_data:
         return jsonify({"message": "existed"})
     
+    
     for index, excel_file in enumerate(uploaded_files):
         if excel_file.filename != '':
             df = pd.read_excel(excel_file, usecols="H,I,Q,R,Z,AA")
             
             for _, row in df.iterrows():
-                diff = abs(row['Van'] - row['Vbn']) + abs(row['Van'] - row['Vcn']) + abs(row['Vbn'] - row['Vcn'])
-                unbalance_count = int(diff > 15)
+                if abs(row['Van'] - row['Vbn']) > 15:
+                    van_vbn = 1
+                else:
+                    van_vbn = 0
+                if abs(row['Van'] - row['Vcn']) > 15:
+                    van_vcn = 1
+                else:
+                    van_vcn = 0
+                if abs(row['Vbn'] - row['Vcn']) > 15:
+                    vbn_vcn = 1
+                else:
+                    vbn_vcn = 0
+                if abs(row['Vab'] - row['Vbc']) > 15:
+                    vab_vbc = 1
+                else:
+                    vab_vbc = 0
+                if abs(row['Vab'] - row['Vca']) > 15:
+                    vab_vca = 1
+                else:
+                    vab_vca = 0
+                if abs(row['Vbc'] - row['Vca']) > 15:
+                    vbc_vca = 1
+                else:
+                    vbc_vca = 0
+                    
+                # diff = abs(row['Van'] - row['Vbn']) + abs(row['Van'] - row['Vcn']) + abs(row['Vbn'] - row['Vcn'])
+                unbalance_count = van_vbn + van_vcn + vbn_vcn + vab_vbc + vab_vca + vbc_vca
                 
-                new = CustUnbalance(date=date, nama=nama, van=row['Van'], vbn=row['Vbn'], vcn=row['Vcn'], vab=row['Vab'], vbc=row['Vbc'], vca=row['Vca'], unbalance_count=unbalance_count)
+                new = CustUnbalance(date=date, nama=nama, van=row['Van'], vbn=row['Vbn'], vcn=row['Vcn'], vab=row['Vab'], vbc=row['Vbc'], vca=row['Vca'],
+                                    van_vbn=van_vbn, van_vcn=van_vcn, vbn_vcn=vbn_vcn, vab_vbc=vab_vbc, vab_vca=vab_vca, vbc_vca=vbc_vca,
+                                    unbalance_count=unbalance_count)
                 db.session.add(new)
                 db.session.commit()
 
@@ -244,26 +284,41 @@ def make_pdf_voltage():
 
     formatted_date = date_obj.strftime("%d %B %Y")
     data = CustUnbalance.query.filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).all()
+    total_van_vbn_count = db.session.query(func.sum(CustUnbalance.van_vbn)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
+    total_van_vcn_count = db.session.query(func.sum(CustUnbalance.van_vcn)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
+    total_vbn_vcn_count = db.session.query(func.sum(CustUnbalance.vbn_vcn)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
+    total_vab_vbc_count = db.session.query(func.sum(CustUnbalance.vab_vbc)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
+    total_vab_vca_count = db.session.query(func.sum(CustUnbalance.vab_vca)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
+    total_vbc_vca_count = db.session.query(func.sum(CustUnbalance.vbc_vca)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
     total_unbalance_count = db.session.query(func.sum(CustUnbalance.unbalance_count)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
     
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
     
-    chunk_size = 30
+    chunk_size = 32
     chunks = [data[i:i + chunk_size] for i in range(0, len(data), chunk_size)]
     
     p.setFont("Helvetica-Bold", 16)
-    p.drawString(60, 765, f"{cust} Daily Report {formatted_date}")  
-    p.setFont("Helvetica", 14)
-    p.drawString(60, 745, f"Total Unbalanced: {total_unbalance_count}")  
+    p.drawString(60, 785, f"{cust} Daily Report {formatted_date}")  
+    p.setFont("Helvetica", 10)
+    p.drawString(60, 765, f"Total Van & Vbn Unbalanced: {total_van_vbn_count}")
+    p.drawString(60, 750, f"Total Van & Vcn Unbalanced: {total_van_vcn_count}")
+    p.drawString(60, 735, f"Total Vbn & Vcn Unbalanced: {total_vbn_vcn_count}")
+    p.drawString(60, 720, f"Total Vab & Vbc Unbalanced: {total_vab_vbc_count}")
+    p.drawString(60, 705, f"Total Vab & Vca Unbalanced: {total_vab_vca_count}")
+    p.drawString(60, 690, f"Total Vbc & Vca Unbalanced: {total_vbc_vca_count}")
+    p.drawString(60, 675, f"Total Unbalanced: {total_unbalance_count}")
     
     for chunk in chunks:
         
-        table_data = [['Van', 'Vbn', 'Vcn', 'Vab', 'Vbc', 'Vca', 'Unbalance Count']]
+        table_data = [['Van', 'Vbn', 'Vcn', 'Vab', 'Vbc', 'Vca', 'Van & Vbn', 'Van & Vcn', 'Vbn & Vcn', 'Vab & Vbc', 'Vab & Vca', 'Vbc & Vca']]
+        # table_data = [['Van', 'Vbn', 'Vcn', 'Vab', 'Vbc', 'Vca', 'Unbalance Count']]
         for row in chunk:
-            table_data.append([row.van, row.vbn, row.vcn, row.vab, row.vbc, row.vca, row.unbalance_count])
+            # table_data.append([row.van, row.vbn, row.vcn, row.vab, row.vbc, row.vca, row.unbalance_count])
+            table_data.append([row.van, row.vbn, row.vcn, row.vab, row.vbc, row.vca, row.van_vbn, row.van_vcn, row.vbn_vcn, row.vab_vbc, row.vab_vca, row.vbc_vca])
 
-        col_widths = [60, 60, 60, 60, 60, 60, 115]
+        col_widths = [39, 39, 39, 39, 39, 39, 40, 40, 40, 40, 40, 40]
+        # col_widths = [60, 60, 60, 60, 60, 60, 115]
         t = Table(table_data, colWidths=col_widths)
         
         style = [('BACKGROUND', (0, 0), (-1, 0), '#4472C4'),
@@ -272,19 +327,17 @@ def make_pdf_voltage():
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
                 ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-                ('FONT', (0, 0), (-1, -1), 'Helvetica', 12)]
+                ('FONT', (0, 0), (-1, -1), 'Helvetica', 8)]
 
         t.setStyle(style)
 
         cell_height = 20 
         table_height = (len(chunk) + 1) * cell_height
-
-        y = 0
-        y2 = 0
-        # y = 47
-        # y2 = (table_height/20 - 1) * 2
         
-        table_y = 745 - 40 - table_height + (y-y2)
+        y = (4.54545*len(chunk))+3.5455
+        
+        table_y = 675 - 30 - table_height + (y)
+        
         
         t.wrapOn(p, 0, 0)
         t.drawOn(p, 60, table_y)
