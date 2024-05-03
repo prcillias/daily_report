@@ -148,6 +148,9 @@
                 <div class="input mb-1" style="display: none;">
                     <input type="text" class="form-control" id="inputNama" placeholder="Input customer name">
                 </div>
+                <div class="input mb-1" style="display: none;">
+                    <input type="number" class="form-control" id="inputArusMax" placeholder="Input maximum current">
+                </div>
                 <form action="" method="post" enctype="multipart/form-data" id="formInputFile" style="display: none;">
                     <div class="input-group mb-2">
                         <input type="file" class="form-control" id="inputFile" name="excel_file" multiple>
@@ -204,6 +207,7 @@
             $('form').submit(function(e) {
                 e.preventDefault();
                 selectedCompany = $('#inputNama').val();
+                arusMax = $('#inputArusMax').val();
                 date = $('#inputDate').val();
                 files = document.getElementById('inputFile').files;
                 if (!selectedCompany) {
@@ -211,6 +215,14 @@
                         icon: 'warning',
                         title: 'Incomplete Details',
                         text: 'Please complete the customer name'
+                    })
+                    return
+                }
+                if (!arusMax) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Incomplete Details',
+                        text: 'Please enter the maximum current'
                     })
                     return
                 }
@@ -234,6 +246,7 @@
                 var formData = new FormData();
                 formData.append('selectedCompany', selectedCompany);
                 formData.append('date', date);
+                formData.append('arusMax', arusMax);
                 var files = $('#inputFile')[0].files;
                 for (var i = 0; i < files.length; i++) {
                     formData.append('excel_files', files[i]);
@@ -252,16 +265,30 @@
                                 title: 'Success'
                             }).then(() => {
                                 $('#inputNama').val('');
+                                $('#inputArusMax').val('');
                                 $('#inputFile').val('');
                                 $("#judul").text("Daily Report");
                                 $("#inputNama").parent().hide();
+                                $("#inputArusMax").parent().hide();
                                 $("#formInputFile").hide(); 
                                 $("#cancelAdd").addClass("d-none");
                                 $("#insert").removeClass("d-none");
                                 $("#search").removeClass("d-none");
                                 $("#dropdownCust").removeClass("d-none");
-                    
+
+                                // last_cust = selectedCompany
+                                // last_date = date
+                                // location.reload();
+
+                                // $("#dropdownCust").val(last_cust);
+                                // $("#inputDate").val(last_date);
                                 getData(date, selectedCompany);
+                                $('#dropdownCust').empty();
+                                $('#dropdownCust').append('<option selected>Choose a customer</option>');
+                                $.each(response.data, function(index, value) {
+                                    $('#dropdownCust').append('<option value="' + value + '">' + value + '</option>');
+                                });
+                                $("#dropdownCust").val(selectedCompany);
                             });
 
                         } else if (response.message == 'existed') {
@@ -298,12 +325,14 @@
                         cust: cust
                     },
                     success: function(response) {
+                        console.log(response.data)
                         if (response.message === 'success') {
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Success'
                             }).then(() => {
-                                getData(date, cust);
+                                // getData(date, cust);
+                                location.reload()
                             });
                         } else {
                             Swal.fire({
@@ -356,6 +385,7 @@
 
                 $("#judul").text("Insert New Data");
                 $("#inputNama").parent().show();
+                $("#inputArusMax").parent().show();
                 $("#formInputFile").show(); 
                 $("#cancelAdd").removeClass("d-none");
                 $("#dropdownCust").addClass("d-none");
@@ -366,6 +396,7 @@
             $('#cancelAdd').on('click', function() {
                 $("#judul").text("Daily Report");
                 $("#inputNama").parent().hide();
+                $("#inputArusMax").parent().hide();
                 $("#formInputFile").hide(); 
                 $("#cancelAdd").addClass("d-none");
                 $("#insert").removeClass("d-none");
@@ -422,7 +453,8 @@
                                     var url = window.URL.createObjectURL(blob);
                                     var a = document.createElement('a');
                                     a.href = url;
-                                    a.download = 'Report.pdf';
+                                    
+                                    a.download = 'ER-' + cust + '-' + (date.replace("-", "")).replace("-","") + '.pdf';
                                     document.body.appendChild(a);
                                     a.click();
                                     window.URL.revokeObjectURL(url);
