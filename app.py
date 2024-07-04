@@ -18,7 +18,6 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] =\
         'sqlite:///' + os.path.join(basedir, 'database', 'database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 db = SQLAlchemy(app)
 
 class CustTemp(db.Model):
@@ -43,29 +42,6 @@ class CustUnbalance(db.Model):
     vab = db.Column(db.Float)
     vbc = db.Column(db.Float)
     vca = db.Column(db.Float)
-    # van_vbn = db.Column(db.Float)
-    # van_vcn = db.Column(db.Float)
-    # vbn_vcn = db.Column(db.Float)
-    # vab_vbc = db.Column(db.Float)
-    # vab_vca = db.Column(db.Float)
-    # vbc_vca = db.Column(db.Float)
-    # vbc_vca_unbalance = db.Column(db.Integer)
-    # van_vbn_unbalance = db.Column(db.Integer)
-    # van_vcn_unbalance = db.Column(db.Integer)
-    # vbn_vcn_unbalance = db.Column(db.Integer)
-    # vab_vbc_unbalance = db.Column(db.Integer)
-    # vab_vca_unbalance = db.Column(db.Integer)
-    # vbc_vca_unbalance = db.Column(db.Integer)
-    # van_status = db.Column(db.String(20))
-    # vbn_status = db.Column(db.String(20))
-    # vcn_status = db.Column(db.String(20))
-    # van_vbn = db.Column(db.String(10), default='-')
-    # van_vcn = db.Column(db.String(10), default='-')
-    # vbn_vcn = db.Column(db.String(10), default='-')
-    # vab_vbc = db.Column(db.String(10), default='-')
-    # vab_vca = db.Column(db.String(10), default='-')
-    # vbc_vca = db.Column(db.String(10), default='-')
-    # unbalance_count = db.Column(db.Integer)
     
     freq = db.Column(db.Float)
     oiltemp = db.Column(db.Float)
@@ -223,7 +199,6 @@ def upload():
     uploaded_files = request.files.getlist('excel_files')
     data = []
     
-
     existing_data = CustTemp.query.filter_by(nama=nama, date=date).first()
     if existing_data:
         return jsonify({"message": "existed"})
@@ -266,9 +241,7 @@ def upload_voltage():
     
     for index, excel_file in enumerate(uploaded_files):
         if excel_file.filename != '':
-            # df = pd.read_excel(excel_file, usecols="H,I,Q,R,Z,AA")
             df = pd.read_excel(excel_file)
-
             for _, row in df.iterrows():
                 unbalance_count = 0
                 remarks = ''
@@ -297,32 +270,26 @@ def upload_voltage():
                     van_under_voltage = 0
                     if under_voltage != '✔':
                         under_voltage = '-'
-                # print(remarks)
                     
                 if (row['Vbn'] < 207):
                     under_voltage = '✔'
                     remarks += str(row['Vbn']) + ', '
                     vbn_under_voltage = 1
-                    
                 else:
                     vbn_under_voltage = 0
                     if under_voltage != '✔':
                         under_voltage = '-'
-                # print(remarks)
                     
                 if (row['Vcn'] < 207):
                     under_voltage = '✔'
                     remarks += str(row['Vcn']) + ', '
                     vcn_under_voltage = 1
-                    
                 else:
                     vcn_under_voltage = 0
                     if under_voltage != '✔':
                         under_voltage = '-'
-                # print(remarks)
                     
                 # Over Voltage
-                
                 if (row['Van'] > 241.5):
                     over_voltage = '✔'
                     remarks += str(row['Van']) + ', '
@@ -331,47 +298,39 @@ def upload_voltage():
                     van_over_voltage = 0
                     if over_voltage != '✔':
                         over_voltage = '-'
-                # print(remarks)
                 
                 if (row['Vbn'] > 241.5):
                     over_voltage = '✔'
                     remarks += str(row['Vbn']) + ', '
                     vbn_over_voltage = 1
-                    
                 else:
                     vbn_over_voltage = 0
                     if over_voltage != '✔':
                         over_voltage = '-'
-                # print(remarks)
                     
                 if (row['Vcn'] > 241.5):
                     over_voltage = '✔'
                     remarks += str(row['Vcn']) + ', '
                     vcn_over_voltage = 1
-                    
                 else:
                     vcn_over_voltage = 0
                     if over_voltage != '✔':
                         over_voltage = '-'
-                # print(remarks)
                     
                 # Freq
                 if (row['Freq'] < 50-(50*0.05)):
                     under_freq = '✔'
                     over_freq = '-'
                     remarks += str(row['Freq']) + ', '
-                    
                 elif (row['Freq'] > 50+(50*0.05)):
                     over_freq = '✔'
                     under_freq = '-'
                     remarks += str(row['Freq']) + ', '
-                    
                 else:
                     if over_freq != '✔':
                         over_freq = '-'
                     if under_freq != '✔':
                         under_freq = '-'
-                # print(remarks)
                     
                 # THDI
                 if (row['THDI1'] > 5):
@@ -382,76 +341,58 @@ def upload_voltage():
                     high_thd_i1 = 0
                     if high_thd_i != '✔':
                         high_thd_i = '-'
-                # print(remarks)
-                    
                 if (row['THDI2'] > 5):
                     high_thd_i = '✔'
                     remarks += str(row['THDI2']) + ', '
                     high_thd_i2 = 1
-                    
                 else:
                     high_thd_i2 = 0
                     if high_thd_i != '✔':
                         high_thd_i = '-'
-                # print(remarks)
-                    
                 if (row['THDI3'] > 5):
                     high_thd_i = '✔'
                     remarks += str(row['THDI3'] )+ ', '
                     high_thd_i3 = 1
-                    
                 else:
                     high_thd_i3 = 0
                     if high_thd_i != '✔':
                         high_thd_i = '-'
-                # print(remarks)
                 
                 # THDV
                 if (row['THDV1'] > 5):
                     high_thd_v = '✔'
                     remarks += str(row['THDV1']) + ', '
                     high_thd_v1 = 1
-                    
                 else:
                     high_thd_v1 = 0
                     if high_thd_v != '✔':
                         high_thd_v = '-'
-                # print(remarks)
-                    
                 if (row['THDV2'] > 5):
                     high_thd_v = '✔'
                     remarks += str(row['THDV2'])+ ', '
                     high_thd_v2 = 1
-                    
                 else:
                     high_thd_v2 = 0
                     if high_thd_v != '✔':
                         high_thd_v = '-'
-                # print(remarks)
-                    
                 if (row['THDV3'] > 5):
                     high_thd_v = '✔'
                     remarks += str(row['THDV3']) + ', '
                     high_thd_v3 = 1
-                    
                 else:
                     high_thd_v3 = 0
                     if high_thd_v != '✔':
                         high_thd_v = '-'
-                # print(remarks)
                     
                 # Top Oil
                 if (row['OilTemp'] > 70):
                     oil_hightemp = '✔'
                     remarks += str(row['OilTemp']) + ', '
-                    
                 else:
                     if oil_hightemp != '✔':
                         oil_hightemp = '-'
-                # print(remarks)
                 
                 # WTI
-                
                 if (row['WTITemp1'] > 88):
                     wti_hightemp = '✔'
                     remarks += str(row['WTITemp1']) + ', '
@@ -460,8 +401,6 @@ def upload_voltage():
                     wti_hightemp1 = 0
                     if wti_hightemp != '✔':
                         wti_hightemp = '-'
-                # print(remarks)
-                    
                 if (row['WTITemp2'] > 88):
                     wti_hightemp = '✔'
                     remarks += str(row['WTITemp2']) + ', '
@@ -470,8 +409,6 @@ def upload_voltage():
                     wti_hightemp2 = 0
                     if wti_hightemp != '✔':
                         wti_hightemp = '-'
-                # print(remarks)
-                    
                 if (row['WTITemp3'] > 88):
                     wti_hightemp = '✔'
                     remarks += str(row['WTITemp3']) + ', '
@@ -480,10 +417,8 @@ def upload_voltage():
                     wti_hightemp3 = 0
                     if wti_hightemp != '✔':
                         wti_hightemp = '-'
-                # print(remarks)
                 
                 # PF
-
                 if (row['PFa'] < 0.75):
                     low_pf = '✔'
                     remarks += str(row['PFa']) + ', '
@@ -492,19 +427,14 @@ def upload_voltage():
                     low_pfa = 0
                     if low_pf != '✔':
                         low_pf = '-'
-                # print(remarks)
-                    
                 if (row['PFb'] < 0.75):
                     low_pf = '✔'
                     remarks += str(row['PFb']) + ', '
                     low_pfb = 1
-                    
                 else:
                     low_pfb = 0
                     if low_pf != '✔':
                         low_pf = '-'
-                # print(remarks)
-                    
                 if (row['PFc'] < 0.75):
                     low_pf = '✔'
                     remarks += str(row['PFc']) + ', '
@@ -513,7 +443,6 @@ def upload_voltage():
                     low_pfc = 0
                     if low_pf != '✔':
                         low_pf = '-'
-                # print(remarks)
                 
                 # Current
                 if (row['Ia'] > max_current):
@@ -524,39 +453,30 @@ def upload_voltage():
                     over_currenta = 0
                     if over_current != '✔':
                         over_current = '-'
-                # print(remarks)
-                
                 if (row['Ib'] > max_current):
                     over_current = '✔'
                     remarks += str(row['Ib']) + ', '
                     over_currentb = 1
-                    
                 else:
                     over_currentb = 0
                     if over_current != '✔':
                         over_current = '-'
-                # print(remarks)
-                    
                 if (row['Ic'] > max_current):
                     over_current = '✔'
                     remarks += str(row['Ic']) + ', '
                     over_currentc = 1
-                    
                 else:
                     over_currentc = 0
                     if over_current != '✔':
                         over_current = '-'
-                # print(remarks)
                 
                 # Neutral Current
                 if (row['Ineutral'] > 125):
                     high_ineutral = '✔'
                     remarks += str(row['Ineutral']) + ', '
-                    
                 else:
                     if high_ineutral != '✔':
                         high_ineutral = '-'
-                # print(remarks)
                 
                 # Busbar Temp
                 if (row['BusTemp1'] > 54):
@@ -567,29 +487,22 @@ def upload_voltage():
                     bus_hightemp1 = 0
                     if bus_hightemp != '✔':
                         bus_hightemp = '-'
-                # print(remarks)
-                
                 if (row['BusTemp2'] > 54):
                     bus_hightemp = '✔'
                     remarks += str(row['BusTemp2']) + ', '
                     bus_hightemp2 = 1
-                    
                 else:
                     bus_hightemp2 = 0
                     if bus_hightemp != '✔':
                         bus_hightemp = '-'
-                # print(remarks)
-                    
                 if (row['BusTemp3'] > 54):
                     bus_hightemp = '✔'
                     remarks += str(row['BusTemp3']) + ', '
                     bus_hightemp3 = 1
-                    
                 else:
                     bus_hightemp3 = 0
                     if bus_hightemp != '✔':
                         bus_hightemp = '-'
-                # print(remarks)
                 
                 # Tank Pressure
                 if (row['Press'] > 0.5):
@@ -598,105 +511,59 @@ def upload_voltage():
                 else:
                     if high_press != '✔':
                         high_press = '-'
-                # print(remarks)
                     
                 # Unbalance
                 if round(abs(row['Van'] - row['Vbn']), 2)  > 15:
-                    # van_vbn = round(abs(row['Van'] - row['Vbn'])) 
                     unbalance = '✔'
                     van_vbn_unbalance = 1
                     remarks += str(round(abs(row['Van'] - row['Vbn']), 2)) + ', '
-                    
                 else:
                     van_vbn_unbalance = 0
                     if unbalance != '✔':
                         unbalance = '-'
-                # print(remarks)
-                    
                 if round(abs(row['Van'] - row['Vcn']), 2)  > 15:
-                    # van_vcn = round(abs(row['Van'] - row['Vcn'])) 
                     unbalance = '✔'
                     van_vcn_unbalance = 1
                     remarks += str(round(abs(row['Van'] - row['Vcn']), 2)) + ', '
-                    
                 else:
                     van_vcn_unbalance = 0
                     if unbalance != '✔':
                         unbalance = '-'
-                # print(remarks)
-                    
                 if round(abs(row['Vbn'] - row['Vcn']), 2)  > 15:
-                    # vbn_vcn = round(abs(row['Vbn'] - row['Vcn'])) 
                     unbalance = '✔'
                     vbn_vcn_unbalance = 1
                     remarks += str(round(abs(row['Vbn'] - row['Vcn']), 2)) + ', '
-                    
                 else:
                     vbn_vcn_unbalance = 0
                     if unbalance != '✔':
                         unbalance = '-'
-                # print(remarks)
-                    
                 if round(abs(row['Vab'] - row['Vbc']), 2)  > 15:
-                    # vab_vbc = round(abs(row['Vab'] - row['Vbc'])) 
                     unbalance = '✔'
                     vab_vbc_unbalance = 1
                     remarks += str(round(abs(row['Vab'] - row['Vbc']), 2)) + ', '
-                    
                 else:
                     vab_vbc_unbalance = 0
                     if unbalance != '✔':
                         unbalance = '-'
-                # print(remarks)
-                    
                 if round(abs(row['Vab'] - row['Vca']), 2)  > 15:
-                    # vab_vca = round(abs(row['Vab'] - row['Vca'])) 
                     unbalance = '✔'
                     vab_vca_unbalance = 1
                     remarks += str(round(abs(row['Vab'] - row['Vca']), 2)) + ', '
-                    
                 else:
                     vab_vca_unbalance = 0
-                    
                     if unbalance != '✔':
                         unbalance = '-'
-                # print(remarks)
-                    
                 if round(abs(row['Vbc'] - row['Vca']), 2)  > 15:
-                    # vbc_vca = round(abs(row['Vbc'] - row['Vca'])) 
                     unbalance = '✔'
                     vbc_vca_unbalance = 1
                     remarks += str(round(abs(row['Vbc'] - row['Vca']), 2))
-                    
                 else:
                     vbc_vca_unbalance = 0
-                    
                     if unbalance != '✔':
                         unbalance = '-'
-                # print(remarks)
                     
                 remarks = remarks.rstrip(', ')
-                # print(remarks)
                     
-            
-                # diff = abs(row['Van'] - row['Vbn']) + abs(row['Van'] - row['Vcn']) + abs(row['Vbn'] - row['Vcn'])
-                # unbalance_count = van_vbn_unbalance + van_vcn_unbalance + vbn_vcn_unbalance + vab_vbc_unbalance + vab_vca_unbalance + vbc_vca_unbalance
-                
-                # new = CustUnbalance(date=date, nama=nama, van=row['Van'], vbn=row['Vbn'], vcn=row['Vcn'], vab=row['Vab'], vbc=row['Vbc'], vca=row['Vca'],
-                #                     van_vbn=van_vbn, van_vcn=van_vcn, vbn_vcn=vbn_vcn, vab_vbc=vab_vbc, vab_vca=vab_vca, vbc_vca=vbc_vca,
-                #                     van_vbn_unbalance=van_vbn_unbalance, van_vcn_unbalance=van_vcn_unbalance, vbn_vcn_unbalance=vbn_vcn_unbalance,
-                #                     vab_vbc_unbalance=vab_vbc_unbalance, vab_vca_unbalance=vab_vca_unbalance, vbc_vca_unbalance=vbc_vca_unbalance,
-                #                     van_status=van_status, vbn_status=vbn_status, vcn_status=vcn_status,
-                #                     freq_status=freq_status, oiltemp_status=oiltemp_status,
-                #                     wtitemp1_status=wtitemp1_status, wtitemp2_status=wtitemp2_status, wtitemp3_status=wtitemp3_status,
-                #                     pfa_status=pfa_status, pfb_status=pfb_status, pfc_status=pfc_status,
-                #                     ia_status=ia_status, ib_status=ib_status, ic_status=ic_status, ineutral_status=ineutral_status,
-                #                     bustemp1_status=bustemp1_status, bustemp2_status=bustemp2_status, bustemp3_status=bustemp3_status, press_status=press_status,
-                #                     freq = row['Freq'], oiltemp = row['OilTemp'], wtitemp1 = row['WTITemp1'], wtitemp2 = row['WTITemp2'], wtitemp3 = row['WTITemp3'],
-                #                     pfa = row['PFa'], pfb = row['PFb'], pfc = row['PFc'],
-                #                     ia = row['Ia'], ib = row['Ib'], ic = row['Ic'],
-                #                     ineutral = row['Ineutral'], bustemp1 = row['BusTemp1'], bustemp2 = row['BusTemp2'], bustemp3 = row['BusTemp3'],
-                #                     unbalance_count=unbalance_count)
                 new = CustUnbalance(date=date, nama=nama, timestamp=row['timestamp'], max_current=max_current, van=row['Van'], vbn=row['Vbn'], vcn=row['Vcn'], vab=row['Vab'], vbc=row['Vbc'], vca=row['Vca'],
                                     freq = row['Freq'], oiltemp = row['OilTemp'], wtitemp1 = row['WTITemp1'], wtitemp2 = row['WTITemp2'], wtitemp3 = row['WTITemp3'],
                                     pfa = row['PFa'], pfb = row['PFb'], pfc = row['PFc'],
@@ -746,22 +613,17 @@ def check():
 def make_pdf():
     date = request.form.get('date')
     date_obj = datetime.strptime(date, "%Y-%m-%d")
-
     formatted_date = date_obj.strftime("%d %B %Y")
     data = CustTemp.query.filter(CustTemp.date == date).all()
-
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
     p.setFont("Helvetica-Bold", 16)
     p.drawString(60, 765, f"Daily Report {formatted_date}")
-
     table_data = [['No', 'Nama', 'Suhu', 'Safe Percentage']]
     for i, row in enumerate(data):
         table_data.append([i+1, row.nama, str(row.average_temp) + '°C', str(row.safe_percentage) + '%'])
-
     col_widths = [35, 195, 122.5, 122.5]
     t = Table(table_data, colWidths=col_widths)
-    
     style = [('BACKGROUND', (0, 0), (-1, 0), '#4472C4'),
              ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
              ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
@@ -769,22 +631,16 @@ def make_pdf():
              ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
              ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
              ('FONT', (0, 0), (-1, -1), 'Helvetica', 12)]
-
     t.setStyle(style)
-
     cell_height = 20 
     table_height = (len(data) + 1) * cell_height
-
     y = 47
     y2 = (table_height/20 - 1) * 2
     table_y = 765 - 60 - table_height + (y-y2)
-    
     t.wrapOn(p, 0, 0)
     t.drawOn(p, 60, table_y)
-
     p.save()
     buffer.seek(0)
-
     return send_file(buffer, as_attachment=True, download_name=f'Report.pdf')
 
 @app.route('/make-pdf-voltage', methods=['POST'])
@@ -795,30 +651,6 @@ def make_pdf_voltage():
 
     formatted_date = date_obj.strftime("%d %B %Y")
     data = CustUnbalance.query.filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).all()
-    
-    # total_van_vbn_count = db.session.query(func.count(CustUnbalance.id)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust, CustUnbalance.van_vbn_unbalance == 1)).scalar()
-    # total_van_vcn_count = db.session.query(func.count(CustUnbalance.id)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust, CustUnbalance.van_vcn_unbalance == 1)).scalar()
-    # total_vbn_vcn_count = db.session.query(func.count(CustUnbalance.id)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust, CustUnbalance.vbn_vcn_unbalance == 1)).scalar()
-    # total_vab_vbc_count = db.session.query(func.count(CustUnbalance.id)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust, CustUnbalance.vab_vbc_unbalance == 1)).scalar()
-    # total_vab_vca_count = db.session.query(func.count(CustUnbalance.id)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust, CustUnbalance.vab_vca_unbalance == 1)).scalar()
-    # total_vbc_vca_count = db.session.query(func.count(CustUnbalance.id)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust, CustUnbalance.vbc_vca_unbalance == 1)).scalar()
-    
-    # total_van_count = db.session.query(func.count(CustUnbalance.id)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust, CustUnbalance.vbc_vca_unbalance == 'Under Voltage')).scalar()
-    # total_vbn_count = db.session.query(func.count(CustUnbalance.id)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust, CustUnbalance.vbc_vca_unbalance == 'Under Voltage')).scalar()
-    # total_vcn_count = db.session.query(func.count(CustUnbalance.id)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust, CustUnbalance.vbc_vca_unbalance == 'Under Voltage')).scalar()
-    # total_v_count = total_van_count + total_vbn_count + total_vcn_count
-    
-    # total_unbalance_count = db.session.query(func.sum(CustUnbalance.unbalance_count)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
-    
-    #---
-    
-
-    # total_van_vbn_count = db.session.query(func.sum(CustUnbalance.van_vbn)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
-    # total_van_vcn_count = db.session.query(func.sum(CustUnbalance.van_vcn)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
-    # total_vbn_vcn_count = db.session.query(func.sum(CustUnbalance.vbn_vcn)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
-    # total_vab_vbc_count = db.session.query(func.sum(CustUnbalance.vab_vbc)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
-    # total_vab_vca_count = db.session.query(func.sum(CustUnbalance.vab_vca)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
-    # total_vbc_vca_count = db.session.query(func.sum(CustUnbalance.vbc_vca)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
     
     # Total Under Voltage
     total_van_under_voltage = db.session.query(func.sum(CustUnbalance.van_under_voltage)).filter(and_(CustUnbalance.date == date, CustUnbalance.nama == cust)).scalar()
@@ -900,206 +732,7 @@ def make_pdf_voltage():
     
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
-    
-    
-    
-    # p.line(80, 575, 760, 575)
-    
-    # p.setFont("Helvetica-Bold", 25)
-    # text_width = p.stringWidth("VOLTAGE DAILY REPORT", "Helvetica-Bold", 25)
-    # x_center = (landscape(A4)[0] - text_width) / 2
-    # # print(x_center)
-    # p.drawString(x_center, 540, "VOLTAGE DAILY REPORT")
-    
-    # p.line(80, 525, 760, 525)
-    
-    # # Name
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(80, 480, 150, 32, fill=1)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 16)
-    # p.drawString(85, 490, "NAME")
-    
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(230, 480, 530, 32, fill=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 16)
-    # p.drawString(235, 490, f"{cust}")
-    
-    # # Date
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(80, 440, 150, 32, fill=1)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 16)
-    # p.drawString(85, 450, "DATE")
-    
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(230, 440, 530, 32, fill=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 16)
-    # p.drawString(235, 450, f"{formatted_date}")
-    
-    # # Summary
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(80, 400, 680, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 15)
-    # text_width = p.stringWidth("SUMMARY", "Helvetica", 15)
-    # x_center = (landscape(A4)[0] - text_width) / 2
-    # p.drawString(x_center, 410, "SUMMARY")
-    
-    # start = 365
-    
-    # # Van & Vbn
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(80, start, 510, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(85, start+10, "Total Van & Vbn Unbalance")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(595, start, 165, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(675, start+10, f"{total_van_vbn_unbalance}")
-
-    # # Van & Vcn
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(80, start-35, 510, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(85, start-35+10, "Total Van & Vcn Unbalance")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(595, start-35, 165, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(675, start-35+10, f"{total_van_vcn_unbalance}")
-
-    # # Total Vbn & Vcn Unbalance
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(80, start-(35*2), 510, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(85, start-(35*2)+10, "Total Vbn & Vcn Unbalance")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(595, start-(35*2), 165, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(675, start-(35*2)+10, f"{total_vbn_vcn_unbalance}")
-
-    # # Total Vab & Vbc Unbalance
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(80, start-(35*3), 510, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(85, start-(35*3)+10, "Total Vab & Vbc Unbalance")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(595, start-(35*3), 165, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(675, start-(35*3)+10, f"{total_vab_vbc_unbalance}")
-
-    # # Total Vab & Vca Unbalance
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(80, start-(35*4), 510, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(85, start-(35*4)+10, "Total Vab & Vca Unbalance")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(595, start-(35*4), 165, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(675, start-(35*4)+10, f"{total_vab_vca_unbalance}")
-
-    # # Total Vbc & Vca Unbalance
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(80, start-(35*5), 510, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(85, start-(35*5)+10, "Total Vbc & Vca Unbalance")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(595, start-(35*5), 165, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(675, start-(35*5)+10, f"{total_vbc_vca_unbalance}")
-
-    # # Total Unbalance
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(80, start-(35*6), 510, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(85, start-(35*6)+10, "Total Unbalance")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(595, start-(35*6), 165, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(675, start-(35*6)+10, f"{total_unbalance}")
-
-    # # Total Van Count
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(80, start-(35*7), 510, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(85, start-(35*7)+10, "Total Under Voltage Van")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(595, start-(35*7), 165, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(675, start-(35*7)+10, f"{total_van_under_voltage}")
-
-    # # Total Vbn Count
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(80, start-(35*8), 510, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(85, start-(35*8)+10, "Total Under Voltage Vbn")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(595, start-(35*8), 165, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(675, start-(35*8)+10, f"{total_vbn_under_voltage}")
-
-    # # Total Vcn Count
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(80, start-(35*9), 510, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(85, start-(35*9)+10, "Total Under Voltage Vcn")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(595, start-(35*9), 165, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(675, start-(35*9)+10, f"{total_vcn_under_voltage}")
-
-    # # Total V Count
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(80, start-(35*10), 510, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(85, start-(35*10)+10, "Total Under Voltage")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(595, start-(35*10), 165, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(675, start-(35*10)+10, f"{total_under_voltage}")
-
-
-    
-
-    # --------------------------------------------------------------------------------------------
-    
     p.line(40, 820, 555, 820)
-
     p.setFont("Helvetica-Bold", 25)
     text_width = p.stringWidth("TMU EVENT REPORT", "Helvetica-Bold", 25)
     x_center = (A4[0] - text_width) / 2
@@ -1155,23 +788,6 @@ def make_pdf_voltage():
     x_4 = 485
     x2_4 = 70
     
-    # titles = [
-    #     "Total Van Under Voltage", "Total Vbn Under Voltage", "Total Vcn Under Voltage", "Total Under Voltage",
-    #     "Total Van Over Voltage", "Total Vbn Over Voltage", "Total Vcn Over Voltage", "Total Over Voltage",
-    #     "Total Under Frequency", "Total Over Frequency",
-    #     "Total High THDI Phase U", "Total High THDI Phase V", "Total High THDI Phase W", "Total High THDI",
-    #     "Total High THDV Phase U", "Total High THDV Phase V", "Total High THDV Phase W", "Total High THDV",
-    #     "Total Oil High Temp",
-    #     "Total WTI Phase U High Temp", "Total WTI Phase V High Temp", "Total WTI Phase W High Temp", "Total WTI High Temp",
-    #     "Total Low Power Factor Phase U", "Total Low Power Factor Phase V", "Total Low Power Factor Phase W", "Total Low Power Factor",
-    #     "Total Over Current Phase U", "Total Over Current Phase V", "Total Over Current Phase W", "Total Over Current",
-    #     "Total High Neutral Current",
-    #     "Total Busbar Phase U High Temp", "Total Busbar Phase V High Temp", "Total Busbar Phase W High Temp", "Total Busbar High Temp",
-    #     "Total High Pressure",
-    #     "Total Van & Vbn Unbalance", "Total Van & Vcn Unbalance", "Total Vbn & Vcn Unbalance",
-    #     "Total Vab & Vbc Unbalance", "Total Vab & Vca Unbalance", "Total Vbc & Vca Unbalance", "Total Unbalance"
-    # ]
-    
     titles = [
         "Total High THDI Phase U", "Total Van Under Voltage",
         "Total High THDI Phase V", "Total Vbn Under Voltage",
@@ -1222,24 +838,6 @@ def make_pdf_voltage():
         total_high_press, total_unbalance
     ]
     
-    # values = [
-    #     total_van_under_voltage, total_vbn_under_voltage, total_vcn_under_voltage, total_under_voltage,
-    #     total_van_over_voltage, total_vbn_over_voltage, total_vcn_over_voltage, total_over_voltage,
-    #     total_under_freq, total_over_freq,
-    #     total_high_thd_i1, total_high_thd_i2, total_high_thd_i3, total_high_thd_i,
-    #     total_high_thd_v1, total_high_thd_v2, total_high_thd_v3, total_high_thd_v,
-    #     total_oil_hightemp,
-    #     total_wti_hightemp1, total_wti_hightemp2, total_wti_hightemp3, total_wti_hightemp,
-    #     total_low_pfa, total_low_pfb, total_low_pfc, total_low_pf,
-    #     total_over_currenta, total_over_currentb, total_over_currentc, total_over_current,
-    #     total_high_ineutral,
-    #     total_bus_hightemp1, total_bus_hightemp2, total_bus_hightemp3, total_bus_hightemp,
-    #     total_high_press,
-    #     total_van_vbn_unbalance, total_van_vcn_unbalance, total_vbn_vcn_unbalance,
-    #     total_vab_vbc_unbalance, total_vab_vca_unbalance, total_vbc_vca_unbalance, total_unbalance
-    # ] 
-
-    
     a = 0
     for i in range(0, 22):
         # Kotak Besar
@@ -1276,172 +874,30 @@ def make_pdf_voltage():
         
         a += 1
         posisi_y -= 30
-        
-    
-    
-    # # Kotak Besar Pertama
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(x, y, x2, w, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 11)
-    # p.drawString(x+5, y+8.4, "Total Van & Vbn Unbalance")
-
-    # # Kotak Kecil Pertama
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(x_2, y, x2_2, w, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 11)
-    # p.drawString(x_2+30, y+8.4, f"{total_van_vbn_unbalance}")
-
-    # # Kotak Besar Kedua
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(x_3, y, x2_3, w, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 11)
-    # p.drawString(x_3+5, y+8.4, "Total Van & Vbn Unbalance")
-
-    # # Kotak Kecil Kedua
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(x_4, y, x2_4, w, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 11)
-    # p.drawString(x_4+30, y+8.4  , f"{total_van_vbn_unbalance}")
-
-    # # ----------------------------------------------------------
-    
-    # # Kotak Besar Pertama
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(x, y-32, x2, w, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 11)
-    # p.drawString(x+5, y+8.4-32, "Total Van & Vbn Unbalance")
-
-    # # Kotak Kecil Pertama
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(x_2, y-32, x2_2, w, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 11)
-    # p.drawString(x_2+30, y+8.4-32, f"{total_van_vbn_unbalance}")
-
-    # # Kotak Besar Kedua
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(x_3, y-32, x2_3, w, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 11)
-    # p.drawString(x_3+5, y+8.4-32, "Total Van & Vbn Unbalance")
-
-    # # Kotak Kecil Kedua
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(x_4, y-32, x2_4, w, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 11)
-    # p.drawString(x_4+30, y+8.4-32, f"{total_van_vbn_unbalance}")
-    
-    
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(60, 535, 400, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(65, 545, "Total Van & Vcn Unbalance")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(465, 535, 70, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(495, 545, f"{total_van_vcn_unbalance}")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(60, 500, 400, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(65, 510, "Total Vbn & Vcn Unbalance")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(465, 500, 70, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(495, 510, f"{total_vbn_vcn_unbalance}")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(60, 465, 400, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(65, 475, "Total Vab & Vbc Unbalance")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(465, 465, 70, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(495, 475, f"{total_vab_vbc_unbalance}")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(60, 430, 400, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(65, 440, "Total Vab & Vca Unbalance")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(465, 430, 70, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(495, 440, f"{total_vab_vca_unbalance}")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(60, 395, 400, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(65, 405, "Total Vbc & Vca Unbalance")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(465, 395, 70, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(495, 405, f"{total_vbc_vca_unbalance}")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(60, 360, 400, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(65, 370, "Total Unbalance")
-
-    # p.setFillColor(colors.lightgrey)
-    # p.rect(465, 360, 70, 30, fill=1, stroke=0)
-    # p.setFillColor(colors.black)
-    # p.setFont("Helvetica", 12)
-    # p.drawString(495, 370, f"{total_unbalance}")
     
     p.showPage()
     p.setPageSize(landscape(A4))
-    
     col_widths = [40, 35, 35, 33,
                 33, 35, 35,
                 47, 50, 31,
                 35, 38, 40,
                 35, 42, 217]
-    
     chunk_size = 28
     chunks = [data[i:i + chunk_size] for i in range(0, len(data), chunk_size)]
-    
     for chunk in chunks:
         table_data = [['timestamp', 'Under\nVoltage', 'Over\nVoltage', 'Under\nFrq',
                        'Over\nFrq', 'High\nTHD I', 'High\nTHD V',
                        'Oil\nHigh-temp', 'WTI\nHigh-temp', 'Low\nPF',
                        'Over\nCurrent', 'High\nI Neutral', 'Bus\nHigh-temp',
                        'High\nPress', 'Unbalance', 'Remarks']]
-        
         for row in chunk:
             remarks = row.remarks.split(", ")
             formatted_remarks = ",\n".join([", ".join(remarks[i:i+9]) for i in range(0, len(remarks), 9)])
-
             table_data.append([row.timestamp, row.under_voltage, row.over_voltage, row.under_freq,
                                row.over_freq, row.high_thd_i, row.high_thd_v, row.oil_hightemp, row.wti_hightemp,
                                row.low_pf, row.over_current, row.high_ineutral, row.bus_hightemp,
                                row.high_press, row.unbalance, formatted_remarks])
-
-        
         t = Table(table_data, colWidths=col_widths)
-        
         style = [
                 ('ROWHEIGHT', (0, 0), (-1, -1), 40),
                 ('BACKGROUND', (0, 0), (-1, 0), '#4472C4'),
@@ -1453,21 +909,10 @@ def make_pdf_voltage():
                 ('FONT', (0, 0), (-1, -1), 'Helvetica', 7.5)]
 
         t.setStyle(style)
-        
         cell_height = 20
-        
         table_height = (len(chunk) + 1) * cell_height
-        
-        
-        # y = (4.54545*len(chunk))+3.5455
-        # y = 21.333*len(chunk)-153.33
-        # y = 150
-        # y = 230
         y = 4.444*len(chunk)+105.56
-        
         table_y = 450 - table_height + (y)
-        
-        # print(t._rowHeights)
         t.wrapOn(p, 0, 0)
         t.drawOn(p, 30, table_y)
         p.showPage()

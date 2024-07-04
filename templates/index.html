@@ -386,7 +386,6 @@
                 e.preventDefault();
 
                 date = $('#inputDate').val()
-
                 if (date == '') {
                     Swal.fire({
                         icon: 'warning',
@@ -395,7 +394,6 @@
                     });
                     return
                 }
-
 
                 $.ajax({
                     url: '/check',
